@@ -1,24 +1,42 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import Login from "./Login";
+import HomePage from "./HomePage";
+import Workout from "./Workout";
 
-export default function App() {
+const Stack = createStackNavigator();
+
+const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>First react app</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator>
+        {isLoggedIn ? (
+          <>
+            <Stack.Screen
+              name="Home"
+              component={HomePage}
+              options={{ title: "Home" }}
+            />
+            <Stack.Screen
+              name="Workout"
+              component={Workout}
+              options={({ route }) => ({
+                title: route.params.title,
+                id: route.params.id,
+              })}
+            />
+          </>
+        ) : (
+          <Stack.Screen name="Login" options={{ title: "Login" }}>
+            {(props) => <Login {...props} setIsLoggedIn={setIsLoggedIn} />}
+          </Stack.Screen>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
-    color: "red",
-    fontSize: 20,
-  },
-});
+export default App;

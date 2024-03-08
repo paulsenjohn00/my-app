@@ -1,0 +1,125 @@
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  ScrollView,
+  SafeAreaView,
+} from "react-native";
+import PocketBase from "pocketbase";
+
+const Item = ({ route }) => {
+  const { id } = route.params;
+  const [workoutItems, setWorkoutItems] = useState([]);
+  const [weight, setWeight] = useState("");
+
+  useEffect(() => {
+    async function fetchData() {
+      const pb = new PocketBase("http://127.0.0.1:8090");
+
+      try {
+        //authenticate;
+        await pb.admins.authWithPassword(
+          "paulsenjohn00@gmail.com",
+          "Shakeandbake25!"
+        );
+        // Fetch records
+        const records = await pb.collection("workout").getList(1, 50, {
+          filter: 'Group = "' + id + '"',
+          sort: "Order",
+        });
+
+        setWorkoutItems(records.items);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
+  }, [id]);
+
+  return (
+    <ScrollView style={styles.container}>
+      {workoutItems.map((item) => (
+        <View style={styles.contentblock} key={item.id}>
+          <Text style={styles.heading}>{item.WorkoutName}</Text>
+          <Text>{"Sets:"}</Text>
+          <TextInput
+            style={styles.input}
+            value={item.BaseSets.toString()}
+            onChangeText={(text) => {
+              setWorkoutItems((prevItems) =>
+                prevItems.map((prevItem) =>
+                  prevItem.id === item.id
+                    ? { ...prevItem, BaseSets: text }
+                    : prevItem
+                )
+              );
+            }}
+          />
+          <Text>{"Reps:"}</Text>
+          <TextInput
+            style={styles.input}
+            value={item.BaseReps.toString()}
+            onChangeText={(text) => {
+              setWorkoutItems((prevItems) =>
+                prevItems.map((prevItem) =>
+                  prevItem.id === item.id
+                    ? { ...prevItem, BaseReps: text }
+                    : prevItem
+                )
+              );
+            }}
+          />
+          <Text>{"Weight(lbs):"}</Text>
+          <TextInput
+            style={styles.input}
+            value={weight.toString()}
+            onChangeText={setWeight}
+            keyboardType="numeric"
+          />
+        </View>
+      ))}
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f0f0f0",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: "#333",
+  },
+  input: {
+    backgroundColor: "#fff",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  contentblock: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 20,
+    boxShadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+});
+
+export default Item;
